@@ -3,19 +3,20 @@
   become: yes
 
   tasks:
-    - name: Ensure dnsmasq, syslinux, tftp-server, vsftpd and firewalld are installed.
+    - name: Ensure dnsmasq, syslinux, pxelinux, tftd-hpa, vsftpd and firewalld are installed.
       yum:
         name:
           - dnsmasq
           - syslinux
-          - tftp-server
+          - pxelinux
+          - tftpd-hpa
           - vsftpd
           - firewalld
         state: present
 
     - name: Ensure pxelinux.cfg directory exists.
       file:
-        path: /var/lib/tftpboot/pxelinux.cfg
+        path: /srv/tftp/pxelinux.cfg
         state: directory
         mode: '0755'
 
@@ -28,12 +29,17 @@
         group: nobody
         recurse: yes
 
-    - name: copy files into the boot locations
+    - name: copy syslinux and pxelinux files into the boot locations
       copy:
-        src: /usr/share/syslinux/
-        dest: /var/lib/tftpboot
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
         mode: '0755'
         remote_src: yes
+      with_items:
+        - src: /usr/lib/syslinux/
+        - dest: /srv/tftp
+        - src: /usr/lib/PXELINUX/pxelinux.0
+        - dest: /srv/tftp
 
     - name: import the config files
       copy:
@@ -42,7 +48,7 @@
         mode: "0755"
       with_items: 
         - src: default
-          dest: /var/lib/tftpboot/pxelinux.cfg/default
+          dest: /srv/tftp/pxelinux.cfg/default
         - src: dnsmasq.conf
           dest: /etc/dnsmasq.conf
         - src: vsftpd.conf
@@ -88,10 +94,11 @@
         - '4011/udp'
         - '4000-5000/tcp'
 
-    - name: Restart firewalld and dnsmasq.
+    - name: Restart firewalld dnsmasq and tftpd-hpa.
       service:
         name: "{{ item }}"
         state: restarted
       with_items:
         - firewalld
         - dnsmasq
+        - tftpd-hpa
