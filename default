@@ -6,9 +6,6 @@ ONTIMEOUT local
 menu title ########## PXE Boot Menu ##########
 
 label 1
-menu label ^1) Install Rocky Linux 9 x64 with Local Repo
+menu label ^1) Install Rocky Linux 9
 kernel rocky9/vmlinuz
 append initrd=rocky9/initrd.img inst.repo=ftp://192.168.50.188/pub/rocky9 devfs=nomount
-
-label 4
-menu label ^4) Boot from local drive
